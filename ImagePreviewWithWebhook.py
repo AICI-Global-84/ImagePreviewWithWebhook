@@ -23,7 +23,6 @@ class ImagePreviewWithWebhook:
                 "webhook_url": ("STRING",),  # Thêm đầu vào cho URL webhook
             },
             "hidden": {
-                "prompt": "PROMPT",
                 "extra_pnginfo": "EXTRA_PNGINFO",
             }
         }
@@ -31,7 +30,7 @@ class ImagePreviewWithWebhook:
     RETURN_TYPES = ("STRING",)  # Trả về URL hình ảnh
     FUNCTION = "execute"
 
-    def execute(self, images, webhook_url):
+    def execute(self, images, webhook_url, prompt=None):
         # Giả sử chỉ lấy ảnh đầu tiên từ danh sách
         image = images[0]
         image_name = f"{self.prefix_append}.png"
