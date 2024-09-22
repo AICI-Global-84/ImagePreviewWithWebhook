@@ -1,23 +1,14 @@
-from pathlib import Path
-import requests
-from PIL import Image
-import io
-
-# Giả sử rằng logger và các tiện ích khác được định nghĩa trong thư mục này
-from .logger import logger  # Nếu có logger
-# Bạn có thể thêm các import khác nếu cần thiết
-
 class ImagePreviewWithWebhook:
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "image": ("IMAGE",),  # Nhận đầu vào là một hình ảnh
-                "webhook_url": ("STRING",),  # URL của webhook
+                "image": ("IMAGE",),
+                "webhook_url": ("STRING",),
             }
         }
 
-    RETURN_TYPES = ()
+    RETURN_TYPES = ("STRING",)  # Để trả về đường dẫn hoặc thông báo
     FUNCTION = "execute"
 
     def execute(self, image, webhook_url):
@@ -25,12 +16,12 @@ class ImagePreviewWithWebhook:
         image_data = Image.fromarray(image)
 
         # Lưu ảnh ra file tạm thời
-        with io.BytesIO() as img_byte_arr:
-            image_data.save(img_byte_arr, format='PNG')
-            img_byte_arr.seek(0)
+        image_path = "/tmp/generated_image.png"  # Đường dẫn tạm
+        image_data.save(image_path, format='PNG')
 
-            # Định nghĩa payload để gửi lên webhook
-            files = {'file': img_byte_arr.getvalue()}
+        # Định nghĩa payload để gửi lên webhook
+        with open(image_path, 'rb') as img_file:
+            files = {'file': img_file}
             payload = {
                 'message': 'Image generated from ComfyUI',
             }
@@ -40,13 +31,16 @@ class ImagePreviewWithWebhook:
                 response = requests.post(webhook_url, files=files, data=payload)
                 if response.status_code == 200:
                     logger.info(f"Webhook sent successfully to {webhook_url}")
+                    return (f"Webhook sent successfully: {image_path}, Status: {response.status_code}, Response: {response.text},",)
                 else:
                     logger.error(f"Failed to send webhook: {response.status_code}")
+                    return (f"Failed to send webhook: {response.status_code}, Response: {response.text},",)
             except requests.exceptions.RequestException as e:
                 logger.error(f"Error sending webhook: {e}")
+                return (f"Error sending webhook: {e},",)
 
-        # Không trả về gì vì chỉ là preview ảnh
-        return ()
+        return (image_path,)  # Trả về đường dẫn ảnh đã tạo
+
 
 # Đăng ký node vào ComfyUI
 NODE_CLASS_MAPPINGS = {
