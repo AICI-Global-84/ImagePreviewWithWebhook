@@ -1,6 +1,5 @@
-
 import requests
-from ComfyUI.base import Node
+from ..base import Node
 from PIL import Image
 import io
 
