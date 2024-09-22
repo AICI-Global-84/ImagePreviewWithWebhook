@@ -1,9 +1,13 @@
+from pathlib import Path
 import requests
-from base import Node
 from PIL import Image
 import io
 
-class ImagePreviewWithWebhook(Node):
+# Giả sử rằng logger và các tiện ích khác được định nghĩa trong thư mục này
+from .logger import logger  # Nếu có logger
+# Bạn có thể thêm các import khác nếu cần thiết
+
+class ImagePreviewWithWebhook:
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -35,12 +39,12 @@ class ImagePreviewWithWebhook(Node):
             try:
                 response = requests.post(webhook_url, files=files, data=payload)
                 if response.status_code == 200:
-                    print(f"Webhook sent successfully to {webhook_url}")
+                    logger.info(f"Webhook sent successfully to {webhook_url}")
                 else:
-                    print(f"Failed to send webhook: {response.status_code}")
+                    logger.error(f"Failed to send webhook: {response.status_code}")
             except requests.exceptions.RequestException as e:
-                print(f"Error sending webhook: {e}")
-        
+                logger.error(f"Error sending webhook: {e}")
+
         # Không trả về gì vì chỉ là preview ảnh
         return ()
 
