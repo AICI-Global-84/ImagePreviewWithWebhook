@@ -1,14 +1,22 @@
+import requests
+from PIL import Image
+import io
+import os
+
+# Giả sử rằng logger đã được định nghĩa
+from .logger import logger
+
 class ImagePreviewWithWebhook:
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "image": ("IMAGE",),
-                "webhook_url": ("STRING",),
+                "image": ("IMAGE",),  # Nhận đầu vào là một hình ảnh
+                "webhook_url": ("STRING",),  # URL của webhook
             }
         }
 
-    RETURN_TYPES = ("STRING",)  # Để trả về đường dẫn hoặc thông báo
+    RETURN_TYPES = ("STRING",)  # Để trả về thông báo thành công
     FUNCTION = "execute"
 
     def execute(self, image, webhook_url):
@@ -31,18 +39,16 @@ class ImagePreviewWithWebhook:
                 response = requests.post(webhook_url, files=files, data=payload)
                 if response.status_code == 200:
                     logger.info(f"Webhook sent successfully to {webhook_url}")
-                    return (f"Webhook sent successfully: {image_path}, Status: {response.status_code}, Response: {response.text},",)
+                    return (f"Webhook sent successfully: {image_path}, Status: {response.status_code}, Response: {response.text}",)
                 else:
                     logger.error(f"Failed to send webhook: {response.status_code}")
-                    return (f"Failed to send webhook: {response.status_code}, Response: {response.text},",)
+                    return (f"Failed to send webhook: {response.status_code}, Response: {response.text}",)
             except requests.exceptions.RequestException as e:
                 logger.error(f"Error sending webhook: {e}")
-                return (f"Error sending webhook: {e},",)
+                return (f"Error sending webhook: {e}",)
+
+        # Xóa file tạm nếu cần thiết
+        if os.path.exists(image_path):
+            os.remove(image_path)
 
         return (image_path,)  # Trả về đường dẫn ảnh đã tạo
-
-
-# Đăng ký node vào ComfyUI
-NODE_CLASS_MAPPINGS = {
-    "ImagePreviewWithWebhook": ImagePreviewWithWebhook
-}
