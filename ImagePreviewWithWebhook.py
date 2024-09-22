@@ -3,6 +3,7 @@ import random
 import os
 from PIL import Image
 from pathlib import Path
+import numpy as np  # Thêm numpy để chuyển đổi Tensor
 
 # Giả sử rằng logger đã được định nghĩa
 from .logger import logger
@@ -30,6 +31,11 @@ class ImagePreviewWithWebhook:
     def execute(self, images, webhook_url, prompt=None):
         # Giả sử chỉ lấy ảnh đầu tiên từ danh sách
         image = images[0]
+        
+        # Chuyển đổi Tensor thành mảng NumPy nếu cần
+        if hasattr(image, 'cpu'):  # Kiểm tra xem có phải là Tensor không
+            image = image.cpu().numpy()
+
         image_name = f"{self.prefix_append}.png"
         image_path = Path(self.output_dir) / image_name
         
