@@ -22,9 +22,6 @@ class ImagePreviewWithWebhook:
                 "images": ("IMAGE",),
                 "webhook_url": ("STRING",),  # Thêm đầu vào cho URL webhook
             },
-            "hidden": {
-                "extra_pnginfo": "EXTRA_PNGINFO",
-            }
         }
 
     RETURN_TYPES = ("STRING",)  # Trả về URL hình ảnh
