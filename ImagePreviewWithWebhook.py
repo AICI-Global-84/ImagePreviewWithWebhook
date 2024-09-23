@@ -9,7 +9,7 @@ import time
 import folder_paths
 from server import PromptServer
 
-class ImagePreviewWithWebhook:
+class ImagePreviewWithPostImage:
     def __init__(self):
         self.output_dir = folder_paths.get_output_directory()
         self.type = "output"
@@ -36,6 +36,23 @@ class ImagePreviewWithWebhook:
     OUTPUT_NODE = True
     CATEGORY = "image"
 
+    def upload_to_postimage(self, image_path):
+        """Upload image to PostImage and return the direct URL."""
+        post_image_url = "https://postimages.org/json/rr"
+        files = {"file": open(image_path, "rb")}
+        data = {
+            "expiry": "0",  # No expiration
+            "upload_session": "123",  # Mocked session ID
+        }
+        try:
+            response = requests.post(post_image_url, files=files, data=data)
+            response.raise_for_status()
+            json_response = response.json()
+            return json_response['url']
+        except requests.RequestException as e:
+            print(f"Failed to upload image to PostImage: {e}")
+            return None
+
     def process_and_send_image(self, images, filename_prefix="ComfyUI", webhook_url="", prompt=None, extra_pnginfo=None):
         filename_prefix += self.prefix_append
         full_output_folder, filename, counter, subfolder, filename_prefix = folder_paths.get_save_image_path(filename_prefix, self.output_dir, images[0].shape[1], images[0].shape[0])
@@ -57,15 +74,17 @@ class ImagePreviewWithWebhook:
             full_path = os.path.join(full_output_folder, file)
             img.save(full_path, pnginfo=metadata, compress_level=self.compress_level)
 
-            # Construct the URL similar to PreviewImage node
-            timestamp = int(time.time() * 1000)
-            image_url = f"/view?filename={file}&type=output&subfolder={subfolder}&t={timestamp}"
+            # Upload image to PostImage
+            public_image_url = self.upload_to_postimage(full_path)
+            if not public_image_url:
+                print(f"Failed to upload image for batch {batch_number}. Skipping...")
+                continue
 
             # Send webhook
             if webhook_url:
                 try:
                     payload = {
-                        "image_url": image_url,
+                        "image_url": public_image_url,
                         "filename": file,
                         "subfolder": subfolder,
                         "prompt": prompt,
@@ -80,18 +99,18 @@ class ImagePreviewWithWebhook:
                 "filename": file,
                 "subfolder": subfolder,
                 "type": self.type,
-                "image_url": image_url
+                "image_url": public_image_url
             })
             counter += 1
 
-        return (image_url, {"ui": {"images": results}})
+        return (public_image_url, {"ui": {"images": results}})
 
 # A dictionary that contains all nodes you want to export with their names
 NODE_CLASS_MAPPINGS = {
-    "ImagePreviewWithWebhook": ImagePreviewWithWebhook
+    "ImagePreviewWithPostImage": ImagePreviewWithPostImage
 }
 
 # A dictionary that contains the friendly/humanly readable titles for the nodes
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "ImagePreviewWithWebhook": "Image Preview with Webhook"
+    "ImagePreviewWithPostImage": "Image Preview with PostImage"
 }
