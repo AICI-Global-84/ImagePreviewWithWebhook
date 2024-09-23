@@ -55,14 +55,13 @@ class ImagePreviewWithWebhook:
             if response.status_code == 200:
                 response_data = response.json()
                 if 'success' in response_data and 'url' in response_data:
-                    return response_data['url']
+                    # Chuyển đổi URL để lấy được URL trực tiếp đến hình ảnh
+                    return response_data['url'].replace("postimg.cc", "i.postimg.cc")
                 else:
                     print(f"Unexpected response structure: {response_data}")
             else:
                 print(f"Failed to upload image to PostImage: {response.status_code} {response.text}")
             return None
-
-
 
 
     def process_and_send_image(self, images, filename_prefix="ComfyUI", webhook_url="", prompt=None, extra_pnginfo=None):
