@@ -58,10 +58,8 @@ class ImagePreviewWithWebhook:
             img.save(full_path, pnginfo=metadata, compress_level=self.compress_level)
 
             # Construct the URL similar to PreviewImage node
-            server_address = PromptServer.instance.server_address[0]
-            server_port = PromptServer.instance.server_address[1]
             timestamp = int(time.time() * 1000)
-            image_url = f"http://{server_address}:{server_port}/view?filename={file}&type=output&subfolder={subfolder}&t={timestamp}"
+            image_url = f"/view?filename={file}&type=output&subfolder={subfolder}&t={timestamp}"
 
             # Send webhook
             if webhook_url:
