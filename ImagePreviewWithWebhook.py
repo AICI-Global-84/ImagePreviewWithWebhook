@@ -55,8 +55,11 @@ class ImagePreviewWithWebhook:
             if response.status_code == 200:
                 response_data = response.json()
                 if 'success' in response_data and 'url' in response_data:
-                    # Chuyển đổi URL để lấy được URL trực tiếp đến hình ảnh
-                    return response_data['url'].replace("postimg.cc", "i.postimg.cc")
+                    # Chuyển đổi URL để lấy được URL chứa trang
+                    page_url = response_data['url']
+                    # Giả sử URL trực tiếp đến ảnh là dạng: "https://i.postimg.cc/xxx/xxx.png"
+                    direct_url = f"https://i.postimg.cc/{page_url.split('/')[-2]}/{page_url.split('/')[-1]}.png"
+                    return direct_url
                 else:
                     print(f"Unexpected response structure: {response_data}")
             else:
