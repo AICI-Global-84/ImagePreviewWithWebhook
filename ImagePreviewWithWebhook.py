@@ -35,7 +35,7 @@ class ImagePreviewWithWebhook:
     OUTPUT_NODE = True
     CATEGORY = "image"
 
-    def upload_to_postimage(self, image_path):
+    def upload_to_postimage(self, image_path, filename):
         """Upload image to PostImage using POST request and return the direct URL."""
         with open(image_path, 'rb') as img_file:
             files = {'file': img_file}
@@ -55,16 +55,19 @@ class ImagePreviewWithWebhook:
             if response.status_code == 200:
                 response_data = response.json()
                 if 'success' in response_data and 'url' in response_data:
-                    # Chuyển đổi URL để lấy được URL chứa trang
+                    # Lấy trang URL
                     page_url = response_data['url']
-                    # Giả sử URL trực tiếp đến ảnh là dạng: "https://i.postimg.cc/xxx/xxx.png"
-                    direct_url = f"https://i.postimg.cc/{page_url.split('/')[-2]}/{page_url.split('/')[-1]}.png"
+                    
+                    # Xây dựng URL trực tiếp
+                    direct_url = f"https://i.postimg.cc/{page_url.split('/')[-2]}/{filename}"
+                    print(f"Direct image URL: {direct_url}")
                     return direct_url
                 else:
                     print(f"Unexpected response structure: {response_data}")
             else:
                 print(f"Failed to upload image to PostImage: {response.status_code} {response.text}")
             return None
+
 
 
     def process_and_send_image(self, images, filename_prefix="ComfyUI", webhook_url="", prompt=None, extra_pnginfo=None):
