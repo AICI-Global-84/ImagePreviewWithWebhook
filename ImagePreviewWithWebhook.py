@@ -36,24 +36,26 @@ class ImagePreviewWithWebhook:
     CATEGORY = "image"
 
     def upload_to_postimage(self, image_path):
-        """Upload image to PostImage using POST request and return the direct URL."""
-        with open(image_path, 'rb') as img_file:
-            files = {'file': img_file}
-            data = {
-                "token": self.token,
-                "upload_session": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",  # Sinh ngẫu nhiên nếu cần
-                "numfiles": "1",
-                "upload_referer": "https://www.phpbb.com",
-            }
+    """Upload image to PostImage using POST request and return the direct URL."""
+    with open(image_path, 'rb') as img_file:
+        files = {'file': img_file}
+        data = {
+            "token": self.token,
+            "upload_session": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",  # Sinh ngẫu nhiên nếu cần
+            "numfiles": "1",
+            "upload_referer": "https://www.phpbb.com",
+        }
 
-            response = requests.post(self.upload_url, files=files, data=data)
+        response = requests.post(self.upload_url, files=files, data=data)
 
-            if response.status_code == 200:
-                response_data = response.json()
-                if 'url' in response_data:
-                    return response_data['url']
-            print(f"Failed to upload image to PostImage: {response.status_code} {response.text}")
-            return None
+        if response.status_code == 200:
+            response_data = response.json()
+            if 'data' in response_data and 'url' in response_data['data']:
+                # Lấy URL trực tiếp đến ảnh
+                return response_data['data']['url']
+        print(f"Failed to upload image to PostImage: {response.status_code} {response.text}")
+        return None
+
 
     def process_and_send_image(self, images, filename_prefix="ComfyUI", webhook_url="", prompt=None, extra_pnginfo=None):
         filename_prefix += self.prefix_append
