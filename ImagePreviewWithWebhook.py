@@ -48,13 +48,20 @@ class ImagePreviewWithWebhook:
     
             response = requests.post(self.upload_url, files=files, data=data)
     
+            # In ra phản hồi JSON
+            print(f"Response status code: {response.status_code}")
+            print(f"Response text: {response.text}")
+    
             if response.status_code == 200:
                 response_data = response.json()
-                if 'url' in response_data:
-                    # Trả về URL trực tiếp đến ảnh
-                    return response_data['url'].replace("postimg.cc", "i.postimg.cc")
-            print(f"Failed to upload image to PostImage: {response.status_code} {response.text}")
+                if 'success' in response_data and 'url' in response_data:
+                    return response_data['url']
+                else:
+                    print(f"Unexpected response structure: {response_data}")
+            else:
+                print(f"Failed to upload image to PostImage: {response.status_code} {response.text}")
             return None
+
 
 
 
