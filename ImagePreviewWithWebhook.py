@@ -1,98 +1,94 @@
 import os
-import random
+import json
 import requests
 from PIL import Image
+from PIL.PngInfo import PngInfo
 import numpy as np
-from server import folder_paths
-from nodes import SaveImage  # Thay thế 'SomeOtherModule' bằng tên module chứa SaveImage
 
-class ImagePreviewWithWebhook(SaveImage):
+import folder_paths
+
+class ImagePreviewWithWebhook:
     def __init__(self):
-        # Save in temporary directory
-        self.output_dir = folder_paths.get_temp_directory()
-        self.type = "temp"
-        self.prefix_append = "_preview_" + ''.join(random.choice("abcdefghijklmnopqrstupvxyz") for _ in range(5))
-        self.compress_level = 1
-        # Webhook URL (can be configured)
-        self.webhook_url = "https://your-n8n-instance/webhook-endpoint"
+        self.output_dir = folder_paths.get_output_directory()
+        self.type = "output"
+        self.prefix_append = ""
+        self.compress_level = 4
 
     @classmethod
     def INPUT_TYPES(s):
         return {
             "required": {
-                "images": ("IMAGE", ),
+                "images": ("IMAGE", {"tooltip": "The images to save and send to webhook."}),
                 "filename_prefix": ("STRING", {"default": "ComfyUI", "tooltip": "The prefix for the file to save."}),
-                "webhook_url": ("STRING", {"default": "https://your-n8n-instance/webhook-endpoint", "tooltip": "n8n webhook URL to send the request."}),
+                "webhook_url": ("STRING", {"default": "https://your-n8n-webhook-url.com", "tooltip": "The n8n webhook URL to send the image information to."})
             },
             "hidden": {
-                "prompt": "PROMPT", 
+                "prompt": "PROMPT",
                 "extra_pnginfo": "EXTRA_PNGINFO"
             },
         }
 
-    RETURN_TYPES = ("IMAGE", "STRING", "STRING")
-    FUNCTION = "preview_and_webhook"
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("image_url",)
+    FUNCTION = "process_and_send_image"
+    OUTPUT_NODE = True
     CATEGORY = "image"
 
-    def preview_and_webhook(self, images, filename_prefix="ComfyUI", webhook_url=None, prompt=None, extra_pnginfo=None):
-        # Use provided webhook_url if present
-        if webhook_url:
-            self.webhook_url = webhook_url
-
-        # Update filename prefix
+    def process_and_send_image(self, images, filename_prefix="ComfyUI", webhook_url="", prompt=None, extra_pnginfo=None):
         filename_prefix += self.prefix_append
         full_output_folder, filename, counter, subfolder, filename_prefix = folder_paths.get_save_image_path(filename_prefix, self.output_dir, images[0].shape[1], images[0].shape[0])
         
         results = []
-        for (batch_number, image) in enumerate(images):
-            # Convert the image from tensor to numpy array
+        for batch_number, image in enumerate(images):
             i = 255. * image.cpu().numpy()
             img = Image.fromarray(np.clip(i, 0, 255).astype(np.uint8))
             
-            # Define metadata (if needed)
-            metadata = None
-            if not args.disable_metadata:
-                metadata = PngInfo()
-                if prompt is not None:
-                    metadata.add_text("prompt", json.dumps(prompt))
-                if extra_pnginfo is not None:
-                    for key in extra_pnginfo:
-                        metadata.add_text(key, json.dumps(extra_pnginfo[key]))
+            metadata = PngInfo()
+            if prompt is not None:
+                metadata.add_text("prompt", json.dumps(prompt))
+            if extra_pnginfo is not None:
+                for x in extra_pnginfo:
+                    metadata.add_text(x, json.dumps(extra_pnginfo[x]))
 
-            # Create unique filename for each batch
             filename_with_batch_num = filename.replace("%batch_num%", str(batch_number))
             file = f"{filename_with_batch_num}_{counter:05}_.png"
-            img_path = os.path.join(full_output_folder, file)
-            img.save(img_path, pnginfo=metadata, compress_level=self.compress_level)
+            full_path = os.path.join(full_output_folder, file)
+            img.save(full_path, pnginfo=metadata, compress_level=self.compress_level)
+
+            # Construct the URL (assuming a web server is serving the output directory)
+            image_url = f"/outputs/{subfolder}/{file}"
+
+            # Send webhook
+            if webhook_url:
+                try:
+                    payload = {
+                        "image_url": image_url,
+                        "filename": file,
+                        "subfolder": subfolder,
+                        "prompt": prompt,
+                        "extra_info": extra_pnginfo
+                    }
+                    response = requests.post(webhook_url, json=payload)
+                    response.raise_for_status()
+                except requests.RequestException as e:
+                    print(f"Failed to send webhook: {e}")
+
             results.append({
                 "filename": file,
                 "subfolder": subfolder,
-                "type": self.type
+                "type": self.type,
+                "image_url": image_url
             })
-
-            # Send HTTP request to n8n webhook
-            try:
-                response = requests.post(self.webhook_url, json={"image_path": img_path, "filename": file})
-                if response.status_code != 200:
-                    print(f"Failed to send webhook: {response.status_code}, {response.text}")
-                else:
-                    print(f"Webhook sent successfully: {response.status_code}")
-            except Exception as e:
-                print(f"Error sending webhook: {str(e)}")
-
             counter += 1
 
-        # Generate preview image URL
-        image_url = f"file://{img_path}"
+        return (image_url, {"ui": {"images": results}})
 
-        # Return the image, image URL, and filename for the UI
-        return (image, image_url, file)
-
-# Register node
+# A dictionary that contains all nodes you want to export with their names
 NODE_CLASS_MAPPINGS = {
     "ImagePreviewWithWebhook": ImagePreviewWithWebhook
 }
 
+# A dictionary that contains the friendly/humanly readable titles for the nodes
 NODE_DISPLAY_NAME_MAPPINGS = {
     "ImagePreviewWithWebhook": "Image Preview with Webhook"
 }
