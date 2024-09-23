@@ -79,19 +79,20 @@ class ImagePreviewWithWebhook:
             i = 255. * image.cpu().numpy()
             img = Image.fromarray(np.clip(i, 0, 255).astype(np.uint8))
     
-            # Lưu ảnh tạm thời
-            full_path = os.path.join(full_output_folder, filename.replace("%batch_num%", str(batch_number)) + f"_{counter:05}_.png")
+            # Đặt tên file đúng định dạng
+            correct_filename = f"{filename.replace('%batch_num%', str(batch_number))}_{counter:05}.png"
+            full_path = os.path.join(full_output_folder, correct_filename)
             img.save(full_path)
     
             # Upload ảnh và lấy URL trực tiếp
-            public_image_url = self.upload_to_postimage(full_path, f"{filename.replace('%batch_num%', str(batch_number))}.png")
+            public_image_url = self.upload_to_postimage(full_path, correct_filename)
     
             # Kiểm tra URL và xử lý webhook
             if webhook_url:
                 try:
                     payload = {
                         "image_url": public_image_url,
-                        "filename": filename,
+                        "filename": correct_filename,
                         "subfolder": subfolder,
                         "prompt": prompt,
                         "extra_info": extra_pnginfo
@@ -102,7 +103,7 @@ class ImagePreviewWithWebhook:
                     print(f"Failed to send webhook: {e}")
     
             results.append({
-                "filename": filename,
+                "filename": correct_filename,
                 "subfolder": subfolder,
                 "type": self.type,
                 "image_url": public_image_url
@@ -110,6 +111,7 @@ class ImagePreviewWithWebhook:
             counter += 1
     
         return (public_image_url, {"ui": {"images": results}})
+
 
 
 # A dictionary that contains all nodes you want to export with their names
