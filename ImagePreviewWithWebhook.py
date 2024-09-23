@@ -37,7 +37,7 @@ class ImagePreviewWithWebhook:
 
     def upload_to_postimage(self, image_path):
     """Upload image to PostImage using POST request and return the direct URL."""
-    with open(image_path, 'rb') as img_file:
+     with open(image_path, 'rb') as img_file:
         files = {'file': img_file}
         data = {
             "token": self.token,
