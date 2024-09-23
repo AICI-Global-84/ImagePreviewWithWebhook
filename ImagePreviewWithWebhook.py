@@ -4,10 +4,7 @@ import requests
 from PIL import Image
 from PIL.PngImagePlugin import PngInfo
 import numpy as np
-import time
-
 import folder_paths
-from server import PromptServer
 
 class ImagePreviewWithWebhook:
     def __init__(self):
@@ -15,6 +12,8 @@ class ImagePreviewWithWebhook:
         self.type = "output"
         self.prefix_append = ""
         self.compress_level = 4
+        self.token = "61aa06d6116f7331ad7b2ba9c7fb707ec9b182e8"  # Token cố định
+        self.upload_url = "https://postimg.cc/json?q=a"
 
     @classmethod
     def INPUT_TYPES(s):
@@ -37,20 +36,23 @@ class ImagePreviewWithWebhook:
     CATEGORY = "image"
 
     def upload_to_postimage(self, image_path):
-        """Upload image to PostImage and return the direct URL."""
-        post_image_url = "https://postimages.org/json/rr"
-        files = {"file": open(image_path, "rb")}
-        data = {
-            "expiry": "0",  # No expiration
-            "upload_session": "123",  # Mocked session ID
-        }
-        try:
-            response = requests.post(post_image_url, files=files, data=data)
-            response.raise_for_status()
-            json_response = response.json()
-            return json_response['url']
-        except requests.RequestException as e:
-            print(f"Failed to upload image to PostImage: {e}")
+        """Upload image to PostImage using POST request and return the direct URL."""
+        with open(image_path, 'rb') as img_file:
+            files = {'file': img_file}
+            data = {
+                "token": self.token,
+                "upload_session": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",  # Sinh ngẫu nhiên nếu cần
+                "numfiles": "1",
+                "upload_referer": "https://www.phpbb.com",
+            }
+
+            response = requests.post(self.upload_url, files=files, data=data)
+
+            if response.status_code == 200:
+                response_data = response.json()
+                if 'url' in response_data:
+                    return response_data['url']
+            print(f"Failed to upload image to PostImage: {response.status_code} {response.text}")
             return None
 
     def process_and_send_image(self, images, filename_prefix="ComfyUI", webhook_url="", prompt=None, extra_pnginfo=None):
