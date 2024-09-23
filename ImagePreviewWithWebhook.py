@@ -4,6 +4,7 @@ import requests
 from PIL import Image
 import numpy as np
 from server import folder_paths
+from nodes import SaveImage  # Thay thế 'SomeOtherModule' bằng tên module chứa SaveImage
 
 class ImagePreviewWithWebhook(SaveImage):
     def __init__(self):
