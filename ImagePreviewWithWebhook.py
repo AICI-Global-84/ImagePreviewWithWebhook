@@ -9,7 +9,7 @@ import time
 import folder_paths
 from server import PromptServer
 
-class ImagePreviewWithPostImage:
+class ImagePreviewWithWebhook:
     def __init__(self):
         self.output_dir = folder_paths.get_output_directory()
         self.type = "output"
@@ -107,10 +107,10 @@ class ImagePreviewWithPostImage:
 
 # A dictionary that contains all nodes you want to export with their names
 NODE_CLASS_MAPPINGS = {
-    "ImagePreviewWithPostImage": ImagePreviewWithPostImage
+    "ImagePreviewWithWebhook": ImagePreviewWithWebhook
 }
 
 # A dictionary that contains the friendly/humanly readable titles for the nodes
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "ImagePreviewWithPostImage": "Image Preview with PostImage"
+    "ImagePreviewWithWebhook": "Image Preview with Webhook"
 }
