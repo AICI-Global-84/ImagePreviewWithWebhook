@@ -1,6 +1,6 @@
 # __init__.py for registering the ImagePreviewWithWebhook node
 
-from .ImagePreviewWithWebhook import ImagePreviewWithWebhook
+from .image_preview_with_webhook import ImagePreviewWithWebhook
 
 # A dictionary that maps node class names to their corresponding classes
 NODE_CLASS_MAPPINGS = {
