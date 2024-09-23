@@ -2,7 +2,7 @@ import os
 import json
 import requests
 from PIL import Image
-from PIL.PngInfo import PngInfo
+from PIL.PngImagePlugin import PngInfo
 import numpy as np
 
 import folder_paths
