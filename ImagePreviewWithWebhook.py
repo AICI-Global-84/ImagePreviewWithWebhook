@@ -4,8 +4,10 @@ import requests
 from PIL import Image
 from PIL.PngImagePlugin import PngInfo
 import numpy as np
+import time
 
 import folder_paths
+from server import PromptServer
 
 class ImagePreviewWithWebhook:
     def __init__(self):
@@ -55,8 +57,11 @@ class ImagePreviewWithWebhook:
             full_path = os.path.join(full_output_folder, file)
             img.save(full_path, pnginfo=metadata, compress_level=self.compress_level)
 
-            # Construct the URL (assuming a web server is serving the output directory)
-            image_url = f"/outputs/{subfolder}/{file}"
+            # Construct the URL similar to PreviewImage node
+            server_address = PromptServer.instance.server_address[0]
+            server_port = PromptServer.instance.server_address[1]
+            timestamp = int(time.time() * 1000)
+            image_url = f"http://{server_address}:{server_port}/view?filename={file}&type=output&subfolder={subfolder}&t={timestamp}"
 
             # Send webhook
             if webhook_url:
