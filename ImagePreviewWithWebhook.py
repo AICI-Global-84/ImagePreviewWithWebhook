@@ -41,7 +41,7 @@ class ImagePreviewWithWebhook:
             b64_image = b64encode(img_file.read())
 
         headers = {
-            'Authorization': 'Client-ID YOUR_CLIENT_ID'  # Replace with your Imgur client ID
+            'Authorization': 'Client-ID 32191307f978ad9'  # Replace with your Imgur client ID
         }
         data = {
             'image': b64_image,
