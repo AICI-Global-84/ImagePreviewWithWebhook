@@ -19,7 +19,7 @@ class ImagePreviewWithWebhook:
 
     def authenticate_google_drive(self):
         """Tạo dịch vụ Google Drive API sử dụng API Key."""
-        API_KEY = 'AIzaSyCZx3fpOZ2uhwaSmFJKPT62tRCa3mTuTY0'  # Thay bằng API Key của bạn
+        API_KEY = 'AIzaSyAhmeHDqy2oHIsYlZxmYB6LbDuN2irIYTs'  # Thay bằng API Key của bạn
         service = build('drive', 'v3', developerKey=API_KEY)
         return service
 
