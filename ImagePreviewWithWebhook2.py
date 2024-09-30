@@ -102,11 +102,11 @@ class ImagePreviewWithWebhook:
 
 # A dictionary that contains all nodes you want to export with their names
 NODE_CLASS_MAPPINGS = {
-    "ImagePreviewWithWebhook": ImagePreviewWithWebhook
+    "ImagePreviewWithWebhook": ImagePreviewWithWebhook2
 }
 
 # A dictionary that contains the friendly/humanly readable titles for the nodes
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "ImagePreviewWithWebhook": "Image Preview with Webhook"
+    "ImagePreviewWithWebhook": "Image Preview with Webhook 2"
 }
     
