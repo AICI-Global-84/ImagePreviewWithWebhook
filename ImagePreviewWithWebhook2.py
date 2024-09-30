@@ -9,7 +9,7 @@ from base64 import b64encode
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 
-class ImagePreviewWithWebhook:
+class ImagePreviewWithWebhook2:
     def __init__(self):
         self.output_dir = folder_paths.get_output_directory()
         self.type = "output"
